@@ -1,61 +1,73 @@
 import streamlit as st
-import yfinance as yf
-import pandas as pd
-from datetime import datetime, timedelta
+import yfinance as yf 
+import pandas as pd   
 
-st.title("Stock Market Dashboard")
-st.write("Ellaam Maayai")
+def load_data():
+    # Replace with your actual filename
+    return pd.read_csv("all_tickers.csv")
 
-st.sidebar.header("Ticker settings")
-# Default ticker set to a known NSE symbol so the app runs reliably
-default_ticker = "RELIANCE.NS"
-ticker_input = st.sidebar.text_input("Ticker (Yahoo Finance)", value=default_ticker)
+df = load_data()
 
-st.sidebar.markdown("Choose date range or leave empty to use full available history (since IPO).")
-start_default = (datetime.today().date() - timedelta(days=365))
-start_date = st.sidebar.date_input("Start date", value=start_default)
-end_date = st.sidebar.date_input("End date", value=datetime.today().date())
+st.set_page_config(layout='wide')
 
-if st.sidebar.button("Fetch and plot"):
-    with st.spinner("Fetching data from Yahoo Finance..."):
-        try:
-            tk = yf.Ticker(ticker_input)
-            # Get full history
-            hist = tk.history(period="max", interval="1d")
+stock_tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'BRK-B', 'JPM', 'V']
+EXCHANGES = {
+    "United States (NYSE/NASDAQ)": ".US",
+    "London Stock Exchange": ".L",
+    "National Stock Exchange (India)": ".NS",
+    # "Toronto Stock Exchange": ".TO",
+    # "Australian Securities Exchange": ".AX"
+}
+selected_exchange = st.sidebar.selectbox('Select Exchange', list(EXCHANGES.keys()))
+selected_suffix = EXCHANGES[selected_exchange]
 
-            # Try to determine IPO date from info if available
-            info = tk.info if hasattr(tk, "info") else {}
-            ipo_date = None
-            if isinstance(info, dict):
-                ipo_date = info.get("ipoDate") or info.get("firstTradeDateEpochUtc")
-                # if epoch provided, convert to date
-                if isinstance(ipo_date, (int, float)):
-                    try:
-                        ipo_date = datetime.utcfromtimestamp(int(ipo_date)).date()
-                    except Exception:
-                        ipo_date = None
+filtered_df = df[df['suffix'].isin([selected_suffix])]
+ticker_options = filtered_df['symbol'].tolist()
+name_map = dict(zip(filtered_df['symbol'], filtered_df['name']))
 
-            # If user provided a start date, use it; else if ipo_date available, use that; else use earliest
-            if start_date is not None and start_date != "":
-                start = pd.to_datetime(start_date)
-            elif ipo_date:
-                start = pd.to_datetime(ipo_date)
-            else:
-                start = hist.index.min()
+selected_ticker = st.sidebar.selectbox(f"Search and select a stock in {selected_exchange}",
+    options=ticker_options,
+    format_func=lambda x: f"{x} - {name_map.get(x, '')}")
 
-            end = pd.to_datetime(end_date)
+if selected_ticker:
+    st.success(f"You selected: **{selected_ticker}** ({name_map.get(selected_ticker)})")
 
-            # Filter history
-            hist = hist.loc[(hist.index >= start) & (hist.index <= end)]
+@st.cache_data
+def get_stock_data(ticker):
+    data = yf.download(ticker, period='1y')
+    return data
 
-            if hist.empty:
-                st.warning("No historical data available for the chosen range/ticker.")
-            else:
-                st.write(f"Showing `Close` price for {ticker_input} from {start.date()} to {end.date()}")
-                st.line_chart(hist['Close'])
-                st.dataframe(hist[['Open', 'High', 'Low', 'Close', 'Volume']].tail(10))
+if selected_ticker:
+    st.subheader(f'Historical Data for {selected_ticker}')
+    stock_data = get_stock_data(selected_ticker) 
+    if not stock_data.empty:
+        st.write(stock_data.tail())
+    else:
+        st.write("No data found for the selected ticker.")
 
-        except Exception as e:
-            st.error(f"Failed to fetch data: {e}")
-else:
-    st.info(f"Enter a ticker (default: {default_ticker}) and click 'Fetch and plot' in the sidebar.")
+st.subheader(f'Stock Price History for {selected_ticker}')
+# stock_data = stock_data.reset_index() 
+stock_data.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in stock_data.columns]
+stock_data.columns = stock_data.columns.str.replace('.', '', regex=False)
+df_filtered = stock_data.filter(like='Close')
+st.line_chart(df_filtered)
+
+all_stock_data = {}
+mag7_tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA']
+
+for ticker_symbol in mag7_tickers:
+    print(f"Fetching data for {ticker_symbol}...")
+    data = yf.download(ticker_symbol, period='1y')
+    if not data.empty:
+        # Extract 'Close' column and directly assign its name
+        close_prices = data['Close']
+        close_prices.name = ticker_symbol
+        all_stock_data[ticker_symbol] = close_prices
+    else:
+        print(f"No data found for {ticker_symbol}.")
+
+# Combine all 'Close' price Series into a single DataFrame
+mag7_df = pd.concat(all_stock_data.values(), axis=1)
+
+normalized_mag7_df = mag7_df.div(mag7_df.iloc[0]) * 100
+st.line_chart(normalized_mag7_df)
