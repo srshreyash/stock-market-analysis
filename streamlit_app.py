@@ -83,8 +83,8 @@ fig = go.Figure()
 
 for column in normalized_indian_indices_df.columns:
     # Calculate % change from the start of the period
-    start_price = data[column].iloc[0]
-    current_price = data[column].iloc[-1]
+    start_price = normalized_indian_indices_df[column].iloc[0]
+    current_price = normalized_indian_indices_df[column].iloc[-1]
     pct_change = ((current_price - start_price) / start_price) * 100
 
     # Clean label name
