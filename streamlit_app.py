@@ -123,9 +123,14 @@ fig.update_layout(
     xaxis_title="Date",
     yaxis_title="Closing Price",
     margin=dict(r=150), # Increased margin to fit the longer text labels
-    hovermode="x unified",
+    hovermode="x",
+    hoverlabel=dict(
+        bgcolor="white",
+        font_size=12,
+        namelength=-1
+    ),
+
     # traceorder="descending" ensures the tooltip follows the visual height of lines
-    legend={'traceorder':'normal'},
     template="plotly_white",
     showlegend=False # Hide legend since we have end-of-line labels
 )
