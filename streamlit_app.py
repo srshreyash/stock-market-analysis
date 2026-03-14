@@ -93,23 +93,24 @@ indian_indices_df = pd.concat(all_stock_data.values(), axis=1)
 normalized_indian_indices_df = indian_indices_df.div(indian_indices_df.iloc[0]) * 100
 st.line_chart(normalized_indian_indices_df)
 
-tickers = ["^NSEI", "^NSEBANK", "^CNXIT", "^CNXAUTO"]
-data = yf.download(tickers, period="1mo")['Close'].dropna()
+# tickers = ["^NSEI", "^NSEBANK", "^CNXIT", "^CNXAUTO"]
+data = yf.download(indian_indices, period="1y")['Close'].dropna()
+normalized_indian_indices_df = data.div(indian_indices_df.iloc[0]) * 100
 
 fig = go.Figure()
 
-for column in data.columns:
+for column in normalized_indian_indices_df.columns:
     # Add the line
     fig.add_trace(go.Scatter(
-        x=data.index, 
-        y=data[column], 
+        x=normalized_indian_indices_df.index, 
+        y=normalized_indian_indices_df[column], 
         mode='lines', 
         name=column
     ))
     
     # Add the label at the last point
-    last_date = data.index[-1]
-    last_val = data[column].iloc[-1]
+    last_date = normalized_indian_indices_df.index[-1]
+    last_val = normalized_indian_indices_df[column].iloc[-1]
     
     fig.add_annotation(
         x=last_date,
