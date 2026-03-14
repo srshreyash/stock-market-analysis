@@ -74,7 +74,7 @@ normalized_mag7_df = mag7_df.div(mag7_df.iloc[0]) * 100
 st.line_chart(normalized_mag7_df)
 
 all_stock_data = {}
-sector_indices = ["NIFTY_PVT_BANK.NS","^CNXINFRA", "^CNXMEDIA", "^CNXSERVICE", "^CNXCONSUMP", "^CNXCMDT","^CNXPSE","^CNXMNC","^CNXENERGY","^NSEI","^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPSUBANK", "^CNXPHARMA","^CNXREALTY","^CNXMETAL"]
+sector_indices = ["NIFTY_PVT_BANK.NS","^CNXINFRA", "^CNXMEDIA", "^CNXSERVICE", "^CNXCMDT","^CNXPSE","^CNXMNC","^CNXENERGY","^NSEI","^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPSUBANK", "^CNXPHARMA","^CNXREALTY","^CNXMETAL"]
 
 sector_indices_df = yf.download(sector_indices, period="3y")['Close'].dropna()
 sector_indices_df = sector_indices_df.resample('W-FRI').last()
