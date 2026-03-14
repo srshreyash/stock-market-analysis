@@ -77,6 +77,7 @@ all_stock_data = {}
 indian_indices = [ "^NSEI","^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPSUBANK", "^CNXPHARMA","^CNXREALTY","^CNXMETAL"]
 
 indian_indices_df = yf.download(indian_indices, period="3y")['Close'].dropna()
+indian_indices_df = indian_indices_df.resample('W-FRI').last()
 normalized_indian_indices_df = indian_indices_df.div(indian_indices_df.iloc[0]) * 100
 
 # 2. SORT TICKERS by their last available price (Descending)
@@ -110,7 +111,7 @@ for column in sorted_tickers:
     fig.add_trace(go.Scatter(
         x=normalized_indian_indices_df.index, 
         y=normalized_indian_indices_df[column], 
-        mode='lines', 
+        mode='lines+markers', 
         name=display_name,
         line=dict(color=line_color, width=line_width),
         hovertemplate=f'<b>{display_name}</b>: %{{y:,.1f}}<extra></extra>'
