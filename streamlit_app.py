@@ -82,36 +82,47 @@ normalized_indian_indices_df = indian_indices_df.div(indian_indices_df.iloc[0]) 
 fig = go.Figure()
 
 for column in normalized_indian_indices_df.columns:
+    # Calculate % change from the start of the period
+    start_price = data[column].iloc[0]
+    current_price = data[column].iloc[-1]
+    pct_change = ((current_price - start_price) / start_price) * 100
+
+    # Clean label name
+    display_name = column.replace('^', '')
+    
+    # Create the label string: "NSEBANK: +2.4%"
+    label_text = f"{display_name}: {pct_change:+.1f}%"
+
     # Add the line
     fig.add_trace(go.Scatter(
         x=normalized_indian_indices_df.index, 
         y=normalized_indian_indices_df[column], 
         mode='lines', 
-        name=column
+        name=display_name
     ))
-    
-    # Add the label at the last point
-    last_date = normalized_indian_indices_df.index[-1]
-    last_val = normalized_indian_indices_df[column].iloc[-1]
-    
+        
     fig.add_annotation(
-        x=last_date,
-        y=last_val,
-        text=column.replace('^', ''), # Remove the '^' for cleaner labels
+        x=normalized_indian_indices_df.index[-1],
+        y=current_price,
+        text=label_text,
         showarrow=False,
         xanchor="left",
-        xshift=10, # Push text to the right of the point
-        font=dict(size=12)
+        xshift=12, # Push text to the right of the point
+        font=dict(size=11, color = "black")
+        bgcolor="rgba(255,255,255,0.8)"
     )
 
 # 3. Clean up layout to make room for labels
 fig.update_layout(
-    margin=dict(r=100), # Add right margin so labels aren't cut off
+    title="Nifty Sectoral Performance",
+    xaxis_title="Date",
+    yaxis_title="Closing Price",
+    margin=dict(r=150), # Increased margin to fit the longer text labels
     hovermode="x unified",
     template="plotly_white",
     showlegend=False # Hide legend since we have end-of-line labels
 )
 
 # 4. Display in Streamlit
-st.title("Nifty Sectoral Performance")
+# st.title("Nifty Sectoral Performance")
 st.plotly_chart(fig, use_container_width=True)
