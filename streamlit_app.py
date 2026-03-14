@@ -152,7 +152,7 @@ fig.update_layout(
     # traceorder="descending" ensures the tooltip follows the visual height of lines
     template="plotly_white",
     height=800,
-    width = 1000,
+    width = 2000,
     showlegend=False # Hide legend since we have end-of-line labels
 )
 
