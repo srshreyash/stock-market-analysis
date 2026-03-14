@@ -108,7 +108,7 @@ for column in normalized_indian_indices_df.columns:
         showarrow=False,
         xanchor="left",
         xshift=12, # Push text to the right of the point
-        font=dict(size=11, color = "black")
+        font=dict(size=11, color = "black"),
         bgcolor="rgba(255,255,255,0.8)"
     )
 
