@@ -253,3 +253,35 @@ fig.update_layout(
 # 4. Display in Streamlit
 # st.title("Nifty Sectoral Performance")
 st.plotly_chart(fig, use_container_width=False)
+
+# 1. Define your dictionary for easy mapping
+nse_indices_dict = {
+    "Nifty 50 (Benchmark)": "^NSEI",
+    "Nifty 100 (Large Cap)": "^CNX100",
+    "Nifty Next 50": "^NSMIDCP",
+    "Nifty 500 (Multicap)": "^CRSLDX",
+    "Nifty Bank": "^NSEBANK",
+    "Nifty IT": "^CNXIT",
+    "Nifty Auto": "^CNXAUTO",
+    "Nifty FMCG": "^CNXFMCG",
+    "Nifty PSU Bank": "^CNXPSUBANK",
+    "Nifty Pharma": "^CNXPHARMA",
+    "Nifty Metal": "^CNXMETAL",
+    "Nifty Realty": "^CNXREALTY",
+    "Nifty Energy": "^CNXENERGY",
+    "Nifty Midcap 50": "^NSEMDCP50",
+    "Nifty Smallcap 100": "^CNXSC"
+}
+
+# 2. Display in a clean, expandable text box
+with st.expander("📋 View All Index Tickers (Quick Reference)"):
+    st.write("Copy and paste these symbols into your search or configuration:")
+    
+    # Create a formatted string for a Markdown table
+    table_header = "| Index Name | Yahoo Ticker |\n| :--- | :--- |\n"
+    table_rows = "\n".join([f"| {name} | `{ticker}` |" for name, ticker in nse_indices_dict.items()])
+    
+    st.markdown(table_header + table_rows)
+    
+    # Optional: A code block for easy "Copy All"
+    st.code(list(nse_indices_dict.values()), language="python")
