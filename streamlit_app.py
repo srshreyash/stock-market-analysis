@@ -79,9 +79,14 @@ indian_indices = [ "^NSEI","^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPS
 indian_indices_df = yf.download(indian_indices, period="3y")['Close'].dropna()
 normalized_indian_indices_df = indian_indices_df.div(indian_indices_df.iloc[0]) * 100
 
+# 2. SORT TICKERS by their last available price (Descending)
+# This controls the order in the 'x unified' hover box
+last_prices = normalized_indian_indices_df.iloc[-1].sort_values(ascending=False)
+sorted_tickers = last_prices.index.tolist()
+
 fig = go.Figure()
 
-for column in normalized_indian_indices_df.columns:
+for column in sorted_tickers:
     # Calculate % change from the start of the period
     start_price = normalized_indian_indices_df[column].iloc[0]
     current_price = normalized_indian_indices_df[column].iloc[-1]
@@ -120,7 +125,7 @@ fig.update_layout(
     margin=dict(r=150), # Increased margin to fit the longer text labels
     hovermode="x unified",
     # traceorder="descending" ensures the tooltip follows the visual height of lines
-    legend={'traceorder':'descending'},
+    legend={'traceorder':'normal'},
     template="plotly_white",
     showlegend=False # Hide legend since we have end-of-line labels
 )
