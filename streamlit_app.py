@@ -2,6 +2,7 @@ import streamlit as st
 import yfinance as yf 
 import pandas as pd   
 import plotly.graph_objects as go
+from streamlit_tradingview_chart import streamlit_tradingview_chart
 
 def load_data():
     # Replace with your actual filename
@@ -205,7 +206,7 @@ for column in sorted_tickers:
     fig.add_trace(go.Scatter(
         x=normalized_nse_indices_df.index, 
         y=normalized_nse_indices_df[column], 
-        mode='lines+markers', 
+        mode='lines', 
         name=display_name,
         line=dict(color=line_color, width=1),
         hovertemplate=f'<b>{display_name}</b>: %{{y:,.1f}}<extra></extra>'
@@ -285,3 +286,20 @@ with st.expander("📋 View All Index Tickers (Quick Reference)"):
     
     # Optional: A code block for easy "Copy All"
     st.code(list(nse_indices_dict.values()), language="python")
+
+# This allows for a full-screen interactive TradingView experience
+streamlit_tradingview_chart(
+    symbol="NSE:NIFTY",
+    width=1200,
+    height=800,
+    interval="D",
+    timezone="Asia/Kolkata",
+    theme="light",
+    style="1", # 1 is for Candles
+    locale="en",
+    toolbar_bg="#f1f3f6",
+    enable_publishing=False,
+    hide_side_toolbar=False, # Set to False to see drawing tools!
+    allow_symbol_change=True,
+    container_id="tradingview_chart"
+)
