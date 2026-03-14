@@ -73,7 +73,7 @@ normalized_mag7_df = mag7_df.div(mag7_df.iloc[0]) * 100
 st.line_chart(normalized_mag7_df)
 
 all_stock_data = {}
-indian_indices = [ "^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPSUBANK", "^CNXPHARMA","^CNXREALTY","^CNXMETAL"]
+indian_indices = [ "^NSEI","^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPSUBANK", "^CNXPHARMA","^CNXREALTY","^CNXMETAL"]
 
 for ticker_symbol in indian_indices:
     print(f"Fetching data for {ticker_symbol}...")
