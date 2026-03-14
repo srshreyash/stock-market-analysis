@@ -74,26 +74,23 @@ normalized_mag7_df = mag7_df.div(mag7_df.iloc[0]) * 100
 st.line_chart(normalized_mag7_df)
 
 all_stock_data = {}
-sector_indices = ["NIFTY_PVT_BANK.NS","^CNXINFRA","^CNXMEDIA","^CNXSERVICE","^CNXCONSUMP","^CNXCMDT","^CNXPSE","^CNXMNC","^CNXENERGY","^NSEI","^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPSUBANK", "^CNXPHARMA","^CNXREALTY","^CNXMETAL"]
+sector_indices = ["NIFTY_PVT_BANK.NS","^CNXINFRA", "^CNXMEDIA", "^CNXSERVICE", "^CNXCONSUMP", "^CNXCMDT","^CNXPSE","^CNXMNC","^CNXENERGY","^NSEI","^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPSUBANK", "^CNXPHARMA","^CNXREALTY","^CNXMETAL"]
 
 sector_indices_df = yf.download(sector_indices, period="3y")['Close'].dropna()
 sector_indices_df = sector_indices_df.resample('W-FRI').last()
-# normalized_sector_indices_df = sector_indices_df.div(sector_indices_df.iloc[0]) * 100
+normalized_sector_indices_df = sector_indices_df.div(sector_indices_df.iloc[0]) * 100
 
 # 2. SORT TICKERS by their last available price (Descending)
 # This controls the order in the 'x unified' hover box
-# last_prices = normalized_sector_indices_df.iloc[-1].sort_values(ascending=False)
-# sorted_tickers = last_prices.index.tolist()
+last_prices = normalized_sector_indices_df.iloc[-1].sort_values(ascending=False)
+sorted_tickers = last_prices.index.tolist()
 
 fig = go.Figure()
 
-for column in sector_indices_df.columns:
+for column in sorted_tickers:
     # Calculate % change from the start of the period
-    series = sector_indices_df[column].dropna()
-    if len(series) < 2:
-        continue  # Skip if there's not enough data to calculate change
-    start_price = sector_indices_df[column].iloc[0]
-    current_price = sector_indices_df[column].iloc[-1]
+    start_price = normalized_sector_indices_df[column].iloc[0]
+    current_price = normalized_sector_indices_df[column].iloc[-1]
     pct_change = ((current_price - start_price) / start_price) * 100
 
     # Clean label name
@@ -112,8 +109,8 @@ for column in sector_indices_df.columns:
 
     # Add the line
     fig.add_trace(go.Scatter(
-        x=sector_indices_df.index, 
-        y=sector_indices_df[column], 
+        x=normalized_sector_indices_df.index, 
+        y=normalized_sector_indices_df[column], 
         mode='lines+markers', 
         name=display_name,
         line=dict(color=line_color, width=line_width),
@@ -121,7 +118,7 @@ for column in sector_indices_df.columns:
     ))
         
     fig.add_annotation(
-        x=sector_indices_df.index[-1],
+        x=normalized_sector_indices_df.index[-1],
         y=current_price,
         text=f"{display_name}: {pct_change:+.1f}%",
         showarrow=False,
