@@ -76,25 +76,25 @@ st.line_chart(normalized_mag7_df)
 all_stock_data = {}
 indian_indices = [ "^NSEI","^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPSUBANK", "^CNXPHARMA","^CNXREALTY","^CNXMETAL"]
 
-for ticker_symbol in indian_indices:
-    print(f"Fetching data for {ticker_symbol}...")
-    data = yf.download(ticker_symbol, period='1y')
-    if not data.empty:
-        # Extract 'Close' column and directly assign its name
-        close_prices = data['Close']
-        close_prices.name = ticker_symbol
-        all_stock_data[ticker_symbol] = close_prices
-    else:
-        print(f"No data found for {ticker_symbol}.")
+# for ticker_symbol in indian_indices:
+#     print(f"Fetching data for {ticker_symbol}...")
+#     data = yf.download(ticker_symbol, period='1y')
+#     if not data.empty:
+#         # Extract 'Close' column and directly assign its name
+#         close_prices = data['Close']
+#         close_prices.name = ticker_symbol
+#         all_stock_data[ticker_symbol] = close_prices
+#     else:
+#         print(f"No data found for {ticker_symbol}.")
 
-# Combine all 'Close' price Series into a single DataFrame
-indian_indices_df = pd.concat(all_stock_data.values(), axis=1)
+# # Combine all 'Close' price Series into a single DataFrame
+# indian_indices_df = pd.concat(all_stock_data.values(), axis=1)
 
-normalized_indian_indices_df = indian_indices_df.div(indian_indices_df.iloc[0]) * 100
-st.line_chart(normalized_indian_indices_df)
+# normalized_indian_indices_df = indian_indices_df.div(indian_indices_df.iloc[0]) * 100
+# st.line_chart(normalized_indian_indices_df)
 
 # tickers = ["^NSEI", "^NSEBANK", "^CNXIT", "^CNXAUTO"]
-data = yf.download(indian_indices, period="1y")['Close'].dropna()
+data = yf.download(indian_indices, period="3y")['Close'].dropna()
 normalized_indian_indices_df = data.div(indian_indices_df.iloc[0]) * 100
 
 fig = go.Figure()
