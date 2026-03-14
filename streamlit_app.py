@@ -134,7 +134,7 @@ fig.update_layout(
     title="Nifty Sectoral Performance vs Benchmark",
     xaxis_title="Date",
     yaxis_title="Closing Price",
-    margin=dict(r=200), # Increased margin to fit the longer text labels
+    margin=dict(r=200, t=50, b=50), # Increased margin to fit the longer text labels
     hovermode="x",
     xaxis=dict(
         showspikes=True,
@@ -152,9 +152,10 @@ fig.update_layout(
     # traceorder="descending" ensures the tooltip follows the visual height of lines
     template="plotly_white",
     height=800,
+    width = 1000,
     showlegend=False # Hide legend since we have end-of-line labels
 )
 
 # 4. Display in Streamlit
 # st.title("Nifty Sectoral Performance")
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, use_container_width=False)
