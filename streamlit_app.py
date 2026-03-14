@@ -170,7 +170,7 @@ nse_indices = [
     "^NSEI"
 ]
 
-nse_indices_df = yf.download(nse_indices, period="3y")['Close'].dropna(how = "all")
+nse_indices_df = yf.download(nse_indices, period="10y")['Close'].dropna(how = "all")
 nse_indices_df = nse_indices_df.resample('W-FRI').last()
 normalized_nse_indices_df = nse_indices_df.div(nse_indices_df.iloc[0]) * 100
 
