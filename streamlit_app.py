@@ -94,36 +94,54 @@ for column in sorted_tickers:
 
     # Clean label name
     display_name = column.replace('^', '')
+
+    if column == "^NSEI":
+        line_color = "black"
+        line_width = 4  # Thicker for visibility
+        display_name = "NIFTY 50 (Benchmark)"
+    else:
+        line_color = None # Let Plotly choose default colors
+        line_width = 2
     
     # Create the label string: "NSEBANK: +2.4%"
-    label_text = f"{display_name}: {pct_change:+.1f}%"
+    # label_text = f"{display_name}: {pct_change:+.1f}%"
 
     # Add the line
     fig.add_trace(go.Scatter(
         x=normalized_indian_indices_df.index, 
         y=normalized_indian_indices_df[column], 
         mode='lines', 
-        name=display_name
+        name=display_name,
+        line=dict(color=line_color, width=line_width),
+        hovertemplate=f'<b>{display_name}</b>: %{{y:,.1f}}<extra></extra>'
     ))
         
     fig.add_annotation(
         x=normalized_indian_indices_df.index[-1],
         y=current_price,
-        text=label_text,
+        text=f"{display_name}: {pct_change:+.1f}%",
         showarrow=False,
         xanchor="left",
         xshift=12, # Push text to the right of the point
-        font=dict(size=11, color = "black"),
+        font=dict(size=12 if column == "^NSEI" else 10,
+            color=line_color if line_color else "black"),
         bgcolor="rgba(255,255,255,0.8)"
     )
 
 # 3. Clean up layout to make room for labels
 fig.update_layout(
-    title="Nifty Sectoral Performance",
+    title="Nifty Sectoral Performance vs Benchmark",
     xaxis_title="Date",
     yaxis_title="Closing Price",
-    margin=dict(r=150), # Increased margin to fit the longer text labels
+    margin=dict(r=200), # Increased margin to fit the longer text labels
     hovermode="x",
+    xaxis=dict(
+        showspikes=True,
+        spikemode="across",
+        spikesnap="cursor",
+        spikedash="dash",
+        spikethickness=1,
+    ),
     hoverlabel=dict(
         bgcolor="white",
         font_size=12,
