@@ -2,7 +2,7 @@ import streamlit as st
 import yfinance as yf 
 import pandas as pd   
 import plotly.graph_objects as go
-from streamlit_tradingview_chart import streamlit_tradingview_chart
+import streamlit.components.v1 as components
 
 def load_data():
     # Replace with your actual filename
@@ -288,18 +288,30 @@ with st.expander("📋 View All Index Tickers (Quick Reference)"):
     st.code(list(nse_indices_dict.values()), language="python")
 
 # This allows for a full-screen interactive TradingView experience
-streamlit_tradingview_chart(
-    symbol="NSE:NIFTY",
-    width=1200,
-    height=800,
-    interval="D",
-    timezone="Asia/Kolkata",
-    theme="light",
-    style="1", # 1 is for Candles
-    locale="en",
-    toolbar_bg="#f1f3f6",
-    enable_publishing=False,
-    hide_side_toolbar=False, # Set to False to see drawing tools!
-    allow_symbol_change=True,
-    container_id="tradingview_chart"
-)
+def tradingview_chart(symbol="NSE:NIFTY"):
+    # The official TradingView Widget code
+    render_html = f"""
+    <div id="tradingview_chart_wrapper" style="height: 600px;">
+        <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+        <script type="text/javascript">
+        new TradingView.widget({{
+          "autosize": true,
+          "symbol": "{symbol}",
+          "interval": "D",
+          "timezone": "Asia/Kolkata",
+          "theme": "light",
+          "style": "1",
+          "locale": "en",
+          "toolbar_bg": "#f1f3f6",
+          "enable_publishing": false,
+          "hide_side_toolbar": false,  // This enables the drawing tools!
+          "allow_symbol_change": true,
+          "container_id": "tradingview_chart_wrapper"
+        }});
+        </script>
+    </div>
+    """
+    components.html(render_html, height=600)
+
+st.title("TradingView in Streamlit")
+tradingview_chart("NSE:NIFTY")
