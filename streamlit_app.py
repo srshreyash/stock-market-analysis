@@ -169,9 +169,9 @@ nse_indices = [
     "^CNXSC",        # Nifty Smallcap 100
 ]
 
-sector_indices_df = yf.download(nse_indices, period="3y")['Close'].dropna()
-sector_indices_df = sector_indices_df.resample('W-FRI').last()
-normalized_sector_indices_df = sector_indices_df.div(sector_indices_df.iloc[0]) * 100
+nse_indices_df = yf.download(nse_indices, period="3y")['Close'].dropna()
+nse_indices_df = nse_indices_df.resample('W-FRI').last()
+normalized_sector_indices_df = nse_indices_df.div(nse_indices_df.iloc[0]) * 100
 
 # 2. SORT TICKERS by their last available price (Descending)
 # This controls the order in the 'x unified' hover box
