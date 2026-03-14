@@ -78,19 +78,21 @@ sector_indices = ["NIFTY_PVT_BANK.NS","^CNXINFRA","^CNXMEDIA","^CNXSERVICE","^CN
 
 sector_indices_df = yf.download(sector_indices, period="3y")['Close'].dropna()
 sector_indices_df = sector_indices_df.resample('W-FRI').last()
-normalized_sector_indices_df = sector_indices_df.div(sector_indices_df.iloc[0]) * 100
+# normalized_sector_indices_df = sector_indices_df.div(sector_indices_df.iloc[0]) * 100
 
 # 2. SORT TICKERS by their last available price (Descending)
 # This controls the order in the 'x unified' hover box
-last_prices = normalized_sector_indices_df.iloc[-1].sort_values(ascending=False)
-sorted_tickers = last_prices.index.tolist()
+# last_prices = normalized_sector_indices_df.iloc[-1].sort_values(ascending=False)
+# sorted_tickers = last_prices.index.tolist()
 
 fig = go.Figure()
 
-for column in sorted_tickers:
+for column in sector_indices_df.columns:
     # Calculate % change from the start of the period
-    start_price = normalized_sector_indices_df[column].iloc[0]
-    current_price = normalized_sector_indices_df[column].iloc[-1]
+    if len(series) < 2:
+        continue  # Skip if there's not enough data to calculate change
+    start_price = sector_indices_df[column].iloc[0]
+    current_price = sector_indices_df[column].iloc[-1]
     pct_change = ((current_price - start_price) / start_price) * 100
 
     # Clean label name
@@ -109,8 +111,8 @@ for column in sorted_tickers:
 
     # Add the line
     fig.add_trace(go.Scatter(
-        x=normalized_sector_indices_df.index, 
-        y=normalized_sector_indices_df[column], 
+        x=sector_indices_df.index, 
+        y=sector_indices_df[column], 
         mode='lines+markers', 
         name=display_name,
         line=dict(color=line_color, width=line_width),
@@ -118,7 +120,7 @@ for column in sorted_tickers:
     ))
         
     fig.add_annotation(
-        x=normalized_sector_indices_df.index[-1],
+        x=sector_indices_df.index[-1],
         y=current_price,
         text=f"{display_name}: {pct_change:+.1f}%",
         showarrow=False,
