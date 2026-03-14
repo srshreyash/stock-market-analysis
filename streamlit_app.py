@@ -111,7 +111,7 @@ for column in sorted_tickers:
     fig.add_trace(go.Scatter(
         x=normalized_sector_indices_df.index, 
         y=normalized_sector_indices_df[column], 
-        mode='lines+markers', 
+        mode='lines', 
         name=display_name,
         line=dict(color=line_color, width=1),
         hovertemplate=f'<b>{display_name}</b>: %{{y:,.1f}}<extra></extra>'
@@ -207,7 +207,7 @@ for column in sorted_tickers:
         y=normalized_nse_indices_df[column], 
         mode='lines+markers', 
         name=display_name,
-        line=dict(color=line_color, width=line_width),
+        line=dict(color=line_color, width=1),
         hovertemplate=f'<b>{display_name}</b>: %{{y:,.1f}}<extra></extra>'
     ))
         
