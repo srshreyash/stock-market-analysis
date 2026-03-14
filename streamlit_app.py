@@ -94,8 +94,8 @@ indian_indices = [ "^NSEI","^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPS
 # st.line_chart(normalized_indian_indices_df)
 
 # tickers = ["^NSEI", "^NSEBANK", "^CNXIT", "^CNXAUTO"]
-data = yf.download(indian_indices, period="3y")['Close'].dropna()
-normalized_indian_indices_df = data.div(indian_indices_df.iloc[0]) * 100
+indian_indices_df = yf.download(indian_indices, period="3y")['Close'].dropna()
+normalized_indian_indices_df = indian_indices_df.div(indian_indices_df.iloc[0]) * 100
 
 fig = go.Figure()
 
