@@ -89,6 +89,7 @@ fig = go.Figure()
 
 for column in sector_indices_df.columns:
     # Calculate % change from the start of the period
+    series = sector_indices_df[column].dropna()
     if len(series) < 2:
         continue  # Skip if there's not enough data to calculate change
     start_price = sector_indices_df[column].iloc[0]
