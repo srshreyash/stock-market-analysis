@@ -1,6 +1,7 @@
 import streamlit as st
 import yfinance as yf 
 import pandas as pd   
+import plotly.graph_objects as go
 
 def load_data():
     # Replace with your actual filename
@@ -91,3 +92,43 @@ indian_indices_df = pd.concat(all_stock_data.values(), axis=1)
 
 normalized_indian_indices_df = indian_indices_df.div(indian_indices_df.iloc[0]) * 100
 st.line_chart(normalized_indian_indices_df)
+
+tickers = ["^NSEI", "^NSEBANK", "^CNXIT", "^CNXAUTO"]
+data = yf.download(tickers, period="1mo")['Close'].dropna()
+
+fig = go.Figure()
+
+for column in data.columns:
+    # Add the line
+    fig.add_trace(go.Scatter(
+        x=data.index, 
+        y=data[column], 
+        mode='lines', 
+        name=column
+    ))
+    
+    # Add the label at the last point
+    last_date = data.index[-1]
+    last_val = data[column].iloc[-1]
+    
+    fig.add_annotation(
+        x=last_date,
+        y=last_val,
+        text=column.replace('^', ''), # Remove the '^' for cleaner labels
+        showarrow=False,
+        xanchor="left",
+        xshift=10, # Push text to the right of the point
+        font=dict(size=12)
+    )
+
+# 3. Clean up layout to make room for labels
+fig.update_layout(
+    margin=dict(r=100), # Add right margin so labels aren't cut off
+    hovermode="x unified",
+    template="plotly_white",
+    showlegend=False # Hide legend since we have end-of-line labels
+)
+
+# 4. Display in Streamlit
+st.title("Nifty Sectoral Performance")
+st.plotly_chart(fig, use_container_width=True)
