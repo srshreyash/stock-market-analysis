@@ -113,7 +113,7 @@ for column in sorted_tickers:
         y=normalized_sector_indices_df[column], 
         mode='lines+markers', 
         name=display_name,
-        line=dict(color=line_color, width=line_width),
+        line=dict(color=line_color, width=1),
         hovertemplate=f'<b>{display_name}</b>: %{{y:,.1f}}<extra></extra>'
     ))
         
