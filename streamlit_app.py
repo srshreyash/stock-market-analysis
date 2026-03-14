@@ -74,23 +74,23 @@ normalized_mag7_df = mag7_df.div(mag7_df.iloc[0]) * 100
 st.line_chart(normalized_mag7_df)
 
 all_stock_data = {}
-indian_indices = [ "^NSEI","^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPSUBANK", "^CNXPHARMA","^CNXREALTY","^CNXMETAL"]
+sector_indices = ["NIFTY_PVT_BANK.NS","^CNXINFRA", "^CNXMEDIA", "^CNXSERVICE", "^CNXCONSUMP", "^CNXCMDT","^CNXPSE","^CNXMNC","^CNXENERGY",,"^NSEI","^NSEBANK", "^CNXIT", "^CNXFMCG", "^CNXAUTO", "^CNXPSUBANK", "^CNXPHARMA","^CNXREALTY","^CNXMETAL",""]
 
-indian_indices_df = yf.download(indian_indices, period="3y")['Close'].dropna()
-indian_indices_df = indian_indices_df.resample('W-FRI').last()
-normalized_indian_indices_df = indian_indices_df.div(indian_indices_df.iloc[0]) * 100
+sector_indices_df = yf.download(sector_indices, period="3y")['Close'].dropna()
+sector_indices_df = sector_indices_df.resample('W-FRI').last()
+normalized_sector_indices_df = sector_indices_df.div(sector_indices_df.iloc[0]) * 100
 
 # 2. SORT TICKERS by their last available price (Descending)
 # This controls the order in the 'x unified' hover box
-last_prices = normalized_indian_indices_df.iloc[-1].sort_values(ascending=False)
+last_prices = normalized_sector_indices_df.iloc[-1].sort_values(ascending=False)
 sorted_tickers = last_prices.index.tolist()
 
 fig = go.Figure()
 
 for column in sorted_tickers:
     # Calculate % change from the start of the period
-    start_price = normalized_indian_indices_df[column].iloc[0]
-    current_price = normalized_indian_indices_df[column].iloc[-1]
+    start_price = normalized_sector_indices_df[column].iloc[0]
+    current_price = normalized_sector_indices_df[column].iloc[-1]
     pct_change = ((current_price - start_price) / start_price) * 100
 
     # Clean label name
@@ -109,8 +109,8 @@ for column in sorted_tickers:
 
     # Add the line
     fig.add_trace(go.Scatter(
-        x=normalized_indian_indices_df.index, 
-        y=normalized_indian_indices_df[column], 
+        x=normalized_sector_indices_df.index, 
+        y=normalized_sector_indices_df[column], 
         mode='lines+markers', 
         name=display_name,
         line=dict(color=line_color, width=line_width),
@@ -118,7 +118,100 @@ for column in sorted_tickers:
     ))
         
     fig.add_annotation(
-        x=normalized_indian_indices_df.index[-1],
+        x=normalized_sector_indices_df.index[-1],
+        y=current_price,
+        text=f"{display_name}: {pct_change:+.1f}%",
+        showarrow=False,
+        xanchor="left",
+        xshift=12, # Push text to the right of the point
+        font=dict(size=12 if column == "^NSEI" else 10,
+            color=line_color if line_color else "black"),
+        bgcolor="rgba(255,255,255,0.8)"
+    )
+
+# 3. Clean up layout to make room for labels
+fig.update_layout(
+    title="Nifty Sectoral Performance vs Benchmark",
+    xaxis_title="Date",
+    yaxis_title="Closing Price",
+    margin=dict(r=200, t=50, b=50), # Increased margin to fit the longer text labels
+    hovermode="x",
+    xaxis=dict(
+        showspikes=True,
+        spikemode="across",
+        spikesnap="cursor",
+        spikedash="dash",
+        spikethickness=1,
+    ),
+    hoverlabel=dict(
+        bgcolor="white",
+        font_size=12,
+        namelength=-1
+    ),
+
+    # traceorder="descending" ensures the tooltip follows the visual height of lines
+    template="plotly_white",
+    height=800,
+    width = 2000,
+    showlegend=False # Hide legend since we have end-of-line labels
+)
+
+# 4. Display in Streamlit
+# st.title("Nifty Sectoral Performance")
+st.plotly_chart(fig, use_container_width=False)
+
+# Comprehensive list of NSE Indices for yfinance
+nse_indices = [
+    "^CNX100",       # Nifty 100
+    "^CRSLDX",       # Nifty 500
+    "^NSMIDCP",      # Nifty Next 50
+    "^NSEMDCP50",    # Nifty Midcap 50
+    "^CNXSC",        # Nifty Smallcap 100
+]
+
+sector_indices_df = yf.download(nse_indices, period="3y")['Close'].dropna()
+sector_indices_df = sector_indices_df.resample('W-FRI').last()
+normalized_sector_indices_df = sector_indices_df.div(sector_indices_df.iloc[0]) * 100
+
+# 2. SORT TICKERS by their last available price (Descending)
+# This controls the order in the 'x unified' hover box
+last_prices = normalized_sector_indices_df.iloc[-1].sort_values(ascending=False)
+sorted_tickers = last_prices.index.tolist()
+
+fig = go.Figure()
+
+for column in sorted_tickers:
+    # Calculate % change from the start of the period
+    start_price = normalized_sector_indices_df[column].iloc[0]
+    current_price = normalized_sector_indices_df[column].iloc[-1]
+    pct_change = ((current_price - start_price) / start_price) * 100
+
+    # Clean label name
+    display_name = column.replace('^', '')
+
+    if column == "^NSEI":
+        line_color = "black"
+        line_width = 4  # Thicker for visibility
+        display_name = "NIFTY 50 (Benchmark)"
+    else:
+        line_color = None # Let Plotly choose default colors
+        line_width = 2
+    
+    # Create the label string: "NSEBANK: +2.4%"
+    # label_text = f"{display_name}: {pct_change:+.1f}%"
+
+    # Add the line
+    fig.add_trace(go.Scatter(
+        x=normalized_sector_indices_df.index, 
+        y=normalized_sector_indices_df[column], 
+        mode='lines+markers', 
+        name=display_name,
+        line=dict(color=line_color, width=line_width),
+        hovertemplate=f'<b>{display_name}</b>: %{{y:,.1f}}<extra></extra>'
+    ))
+        
+    fig.add_annotation(
+        x=normalized_sector_indices_df.index[-1],
         y=current_price,
         text=f"{display_name}: {pct_change:+.1f}%",
         showarrow=False,
