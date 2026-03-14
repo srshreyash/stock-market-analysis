@@ -167,23 +167,24 @@ nse_indices = [
     "^NSMIDCP",      # Nifty Next 50
     "^NSEMDCP50",    # Nifty Midcap 50
     "^CNXSC",        # Nifty Smallcap 100
+    "^NSEI"
 ]
 
 nse_indices_df = yf.download(nse_indices, period="3y")['Close'].dropna()
 nse_indices_df = nse_indices_df.resample('W-FRI').last()
-normalized_sector_indices_df = nse_indices_df.div(nse_indices_df.iloc[0]) * 100
+normalized_nse_indices_df = nse_indices_df.div(nse_indices_df.iloc[0]) * 100
 
 # 2. SORT TICKERS by their last available price (Descending)
 # This controls the order in the 'x unified' hover box
-last_prices = normalized_sector_indices_df.iloc[-1].sort_values(ascending=False)
+last_prices = normalized_nse_indices_df.iloc[-1].sort_values(ascending=False)
 sorted_tickers = last_prices.index.tolist()
 
 fig = go.Figure()
 
 for column in sorted_tickers:
     # Calculate % change from the start of the period
-    start_price = normalized_sector_indices_df[column].iloc[0]
-    current_price = normalized_sector_indices_df[column].iloc[-1]
+    start_price = normalized_nse_indices_df[column].iloc[0]
+    current_price = normalized_nse_indices_df[column].iloc[-1]
     pct_change = ((current_price - start_price) / start_price) * 100
 
     # Clean label name
@@ -202,8 +203,8 @@ for column in sorted_tickers:
 
     # Add the line
     fig.add_trace(go.Scatter(
-        x=normalized_sector_indices_df.index, 
-        y=normalized_sector_indices_df[column], 
+        x=normalized_nse_indices_df.index, 
+        y=normalized_nse_indices_df[column], 
         mode='lines+markers', 
         name=display_name,
         line=dict(color=line_color, width=line_width),
@@ -211,7 +212,7 @@ for column in sorted_tickers:
     ))
         
     fig.add_annotation(
-        x=normalized_sector_indices_df.index[-1],
+        x=normalized_nse_indices_df.index[-1],
         y=current_price,
         text=f"{display_name}: {pct_change:+.1f}%",
         showarrow=False,
