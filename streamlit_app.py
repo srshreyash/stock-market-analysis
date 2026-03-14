@@ -119,6 +119,8 @@ fig.update_layout(
     yaxis_title="Closing Price",
     margin=dict(r=150), # Increased margin to fit the longer text labels
     hovermode="x unified",
+    # traceorder="descending" ensures the tooltip follows the visual height of lines
+    legend={'traceorder':'descending'},
     template="plotly_white",
     showlegend=False # Hide legend since we have end-of-line labels
 )
