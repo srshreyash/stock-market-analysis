@@ -151,6 +151,113 @@ fig.update_layout(
     showlegend=False # Hide legend since we have end-of-line labels
 )
 
+# 1. Data Retrieval
+nse_indices = [
+    "^CNX100", "^CRSLDX", "^NSMIDCP", "^NSEMDCP50", "^CNXSC", "^NSEI"
+]
+
+# Cache the data so it doesn't re-download every time you change the dropdown
+@st.cache_data
+def get_data(tickers):
+    df = yf.download(tickers, period="10y")['Close'].dropna(how="all")
+    df = df.resample('W-FRI').last()
+    return df.div(df.iloc[0]) * 100
+
+normalized_nse_indices_df = get_data(nse_indices)
+
+# 2. Sorting logic
+last_prices = normalized_nse_indices_df.iloc[-1].sort_values(ascending=False)
+sorted_tickers = last_prices.index.tolist()
+
+# --- STREAMLIT SELECTION UI ---
+st.sidebar.header("Chart Controls")
+
+# Checkbox for Select All
+select_all = st.sidebar.checkbox("Select All Indices", value=False)
+
+if select_all:
+    selected_tickers = sorted_tickers
+else:
+    # Dropdown (multiselect) for specific indices
+    selected_tickers = st.sidebar.multiselect(
+        "Choose Indices to Display:",
+        options=sorted_tickers,
+        default=sorted_tickers[:3] # Starts with top 3 performers
+    )
+
+# 3. Build the Figure based on user selection
+fig = go.Figure()
+
+for column in selected_tickers:
+    # Calculate % change from the start of the period
+    start_price = normalized_sector_indices_df[column].iloc[0]
+    current_price = normalized_sector_indices_df[column].iloc[-1]
+    pct_change = ((current_price - start_price) / start_price) * 100
+
+    # Clean label name
+    display_name = column.replace('^', '')
+
+    if column == "^NSEI":
+        line_color = "black"
+        line_width = 4  # Thicker for visibility
+        display_name = "NIFTY 50 (Benchmark)"
+    else:
+        line_color = None # Let Plotly choose default colors
+        line_width = 2
+    
+    # Create the label string: "NSEBANK: +2.4%"
+    # label_text = f"{display_name}: {pct_change:+.1f}%"
+
+    # Add the line
+    fig.add_trace(go.Scatter(
+        x=normalized_sector_indices_df.index, 
+        y=normalized_sector_indices_df[column], 
+        mode='lines', 
+        name=display_name,
+        line=dict(color=line_color, width=1),
+        hovertemplate=f'<b>{display_name}</b>: %{{y:,.1f}}<extra></extra>'
+    ))
+        
+    fig.add_annotation(
+        x=normalized_sector_indices_df.index[-1],
+        y=current_price,
+        text=f"{display_name}: {pct_change:+.1f}%",
+        showarrow=False,
+        xanchor="left",
+        xshift=12, # Push text to the right of the point
+        font=dict(size=12 if column == "^NSEI" else 10,
+            color=line_color if line_color else "black"),
+        bgcolor="rgba(255,255,255,0.8)"
+    )
+
+# 3. Clean up layout to make room for labels
+fig.update_layout(
+    title="Nifty Sectoral Performance vs Benchmark",
+    xaxis_title="Date",
+    yaxis_title="Closing Price",
+    margin=dict(r=200, t=50, b=50), # Increased margin to fit the longer text labels
+    hovermode="x",
+    xaxis=dict(
+        showspikes=True,
+        spikemode="across",
+        spikesnap="cursor",
+        spikedash="dash",
+        spikethickness=1,
+    ),
+    hoverlabel=dict(
+        bgcolor="white",
+        font_size=12,
+        namelength=-1
+    ),
+
+    # traceorder="descending" ensures the tooltip follows the visual height of lines
+    template="plotly_white",
+    height=800,
+    width = 2000,
+    showlegend=False # Hide legend since we have end-of-line labels
+)
+
+
 # 4. Display in Streamlit
 # st.title("Nifty Sectoral Performance")
 st.plotly_chart(fig, use_container_width=False)
@@ -310,58 +417,3 @@ def tradingview_chart(symbol="NSE:NIFTY"):
 st.title("TradingView in Streamlit")
 tradingview_chart("NSE:NIFTY")
 
-# 1. Data Retrieval
-nse_indices = [
-    "^CNX100", "^CRSLDX", "^NSMIDCP", "^NSEMDCP50", "^CNXSC", "^NSEI"
-]
-
-# Cache the data so it doesn't re-download every time you change the dropdown
-@st.cache_data
-def get_data(tickers):
-    df = yf.download(tickers, period="10y")['Close'].dropna(how="all")
-    df = df.resample('W-FRI').last()
-    return df.div(df.iloc[0]) * 100
-
-normalized_nse_indices_df = get_data(nse_indices)
-
-# 2. Sorting logic
-last_prices = normalized_nse_indices_df.iloc[-1].sort_values(ascending=False)
-sorted_tickers = last_prices.index.tolist()
-
-# --- STREAMLIT SELECTION UI ---
-st.sidebar.header("Chart Controls")
-
-# Checkbox for Select All
-select_all = st.sidebar.checkbox("Select All Indices", value=False)
-
-if select_all:
-    selected_tickers = sorted_tickers
-else:
-    # Dropdown (multiselect) for specific indices
-    selected_tickers = st.sidebar.multiselect(
-        "Choose Indices to Display:",
-        options=sorted_tickers,
-        default=sorted_tickers[:3] # Starts with top 3 performers
-    )
-
-# 3. Build the Figure based on user selection
-fig = go.Figure()
-
-for column in selected_tickers:
-    fig.add_trace(go.Scatter(
-        x=normalized_nse_indices_df.index, 
-        y=normalized_nse_indices_df[column], 
-        name=column,
-        mode='lines'
-    ))
-
-# 4. Final Layout Tweaks
-fig.update_layout(
-    title="NSE Indices Performance (Normalized)",
-    hovermode="x unified",
-    xaxis_title="Date",
-    yaxis_title="Normalized Price (Base 100)",
-    legend=dict(orientation="h", y=-0.2)
-)
-
-st.plotly_chart(fig, use_container_width=True)
