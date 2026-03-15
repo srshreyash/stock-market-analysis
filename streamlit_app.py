@@ -39,20 +39,14 @@ def get_stock_data(ticker):
     data = yf.download(ticker, period='1y')
     return data
 
-if selected_ticker:
-    st.subheader(f'Historical Data for {selected_ticker}')
-    stock_data = get_stock_data(selected_ticker) 
-    if not stock_data.empty:
-        st.write(stock_data.tail())
-    else:
-        st.write("No data found for the selected ticker.")
-
+stock_data = get_stock_data(selected_ticker)
 st.subheader(f'Stock Price History for {selected_ticker}')
 # stock_data = stock_data.reset_index() 
 stock_data.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in stock_data.columns]
 stock_data.columns = stock_data.columns.str.replace('.', '', regex=False)
 df_filtered = stock_data.filter(like='Close')
 st.line_chart(df_filtered)
+
 
 all_stock_data = {}
 mag7_tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA']
@@ -315,3 +309,59 @@ def tradingview_chart(symbol="NSE:NIFTY"):
 
 st.title("TradingView in Streamlit")
 tradingview_chart("NSE:NIFTY")
+
+# 1. Data Retrieval
+nse_indices = [
+    "^CNX100", "^CRSLDX", "^NSMIDCP", "^NSEMDCP50", "^CNXSC", "^NSEI"
+]
+
+# Cache the data so it doesn't re-download every time you change the dropdown
+@st.cache_data
+def get_data(tickers):
+    df = yf.download(tickers, period="10y")['Close'].dropna(how="all")
+    df = df.resample('W-FRI').last()
+    return df.div(df.iloc[0]) * 100
+
+normalized_nse_indices_df = get_data(nse_indices)
+
+# 2. Sorting logic
+last_prices = normalized_nse_indices_df.iloc[-1].sort_values(ascending=False)
+sorted_tickers = last_prices.index.tolist()
+
+# --- STREAMLIT SELECTION UI ---
+st.sidebar.header("Chart Controls")
+
+# Checkbox for Select All
+select_all = st.sidebar.checkbox("Select All Indices", value=False)
+
+if select_all:
+    selected_tickers = sorted_tickers
+else:
+    # Dropdown (multiselect) for specific indices
+    selected_tickers = st.sidebar.multiselect(
+        "Choose Indices to Display:",
+        options=sorted_tickers,
+        default=sorted_tickers[:3] # Starts with top 3 performers
+    )
+
+# 3. Build the Figure based on user selection
+fig = go.Figure()
+
+for column in selected_tickers:
+    fig.add_trace(go.Scatter(
+        x=normalized_nse_indices_df.index, 
+        y=normalized_nse_indices_df[column], 
+        name=column,
+        mode='lines'
+    ))
+
+# 4. Final Layout Tweaks
+fig.update_layout(
+    title="NSE Indices Performance (Normalized)",
+    hovermode="x unified",
+    xaxis_title="Date",
+    yaxis_title="Normalized Price (Base 100)",
+    legend=dict(orientation="h", y=-0.2)
+)
+
+st.plotly_chart(fig, use_container_width=True)
